@@ -1,0 +1,75 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-hw-config
+  namespace: default
+data:
+  index.html: |
+    <html>
+    <h2>Hello world !!!</h2>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-hw-deployment
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-index-config
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: nginx-index-config
+        configMap:
+          name: nginx-hw-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-hw-service
+  namespace: default
+spec:
+  selector:
+    app: nginx
+  type: LoadBalancer
+  loadBalancerIP: 100.64.33.251
+  externalTrafficPolicy: Local
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30081
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-hw-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx-internal
+  rules:
+    - host: nginx.home
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nginx-hw-service
+                port:
+                  name: http
