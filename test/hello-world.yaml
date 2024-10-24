@@ -46,9 +46,9 @@ metadata:
 spec:
   selector:
     app: nginx
-  type: LoadBalancer
-  loadBalancerIP: 100.64.33.251
-  externalTrafficPolicy: Local
+  type: NodePort
+  # loadBalancerIP: 100.64.33.251
+  # externalTrafficPolicy: Local
   ports:
   - name: http
     port: 80
